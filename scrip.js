@@ -3,7 +3,7 @@ const formulario = document.querySelector('.formulario');
 const inputEmail = document.querySelector('#email');
 const inputPassword = document.querySelector('#password');
 const segndoElem = document.querySelector('#segundoElemento');
-
+const formulario2 = document.createElement('FORM');
 const usuarioP = document.createElement('DIV');
 
 const url = "https://script.google.com/macros/s/AKfycbzHLLqZm_xrCHclXL0PygUdCbph1zMaTNZMV6XfWJRDShNbl4_KUJKrFgw8-KfSTMVrPg/exec";
@@ -24,13 +24,14 @@ const arrayControl = {
         e.preventDefault();
         const user = {email:inputEmail.value, clave:Number(inputPassword.value), validarCase:'option01'};
         
-        
+        mostrarSpinner();
         fetch(url, {
             method: 'POST',
             body: JSON.stringify(user)
         })
         .then(respuesta => respuesta.json())
         .then(function(data) {
+
             if(data.mensaje === 3011) {
                 arrayControl.usuario = data.usuario;
                 formulario.reset();
@@ -49,27 +50,18 @@ const arrayControl = {
                 const botonGPS = document.getElementById('btngps');
                 botonGPS.onclick = function () {
                     botonGPS.disabled = true;
-                    console.log('desde boton GPS')
                     getLocationConstant();
                 }
             }
             if(data.mensaje === 2015) {
+                formulario.removeChild(formulario.lastChild);
                 console.log(data)
+                activarToast(3);
             }
         });
     }
 
-function envioSegundoFetch(){
     
-    const reporteGPS = {validarCase:'option02', latitude:arrayControl.latitude, longitude:arrayControl.longitude, reporte:arrayControl.reporte, usuario:arrayControl.usuario};
-    fetch(url, {
-        method: 'POST',
-        //mode: 'no-cors',
-        body: JSON.stringify(reporteGPS)
-    })
-    .then(respuesta => respuesta.json())
-    .then(resultado => console.log(resultado))
-}    
 
 function getLocationConstant() {
     if(navigator.geolocation) {
@@ -84,12 +76,12 @@ function onGeoSuccess(event) {
     activarToast(1);
     arrayControl.latitude = event.coords.latitude;
     arrayControl.longitude = event.coords.longitude;
-    const formulario2 = document.createElement('FORM');
+    
     const ubicacionDiv = document.createElement('DIV');
     formulario2.classList.add('row');
-    ubicacionDiv.classList.add('col');
+    ubicacionDiv.classList.add('col-12');
     ubicacionDiv.innerHTML = `
-        <div class="col-12 col-lg-6 mb-3">
+        <div class="col-12 mb-3">
             <div class="input-group">
                 <span class="input-group-text" id="basic-addon1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stopwatch-fill" viewBox="0 0 16 16">
@@ -116,8 +108,23 @@ function onGeoSuccess(event) {
 function enviarReporte(e) {
     e.preventDefault();
     arrayControl.reporte = document.querySelector('#entrad-salida').value;
-    console.log('desde el boton enviar reporte')
     envioSegundoFetch();
+}
+
+function envioSegundoFetch(){
+    
+    const reporteGPS = {validarCase:'option02', latitude:arrayControl.latitude, longitude:arrayControl.longitude, reporte:arrayControl.reporte, usuario:arrayControl.usuario};
+    mostrarSpinner2();
+    fetch(url, {
+        method: 'POST',
+        //mode: 'no-cors',
+        body: JSON.stringify(reporteGPS)
+    })
+    .then(respuesta => respuesta.json())
+    .then(resultado => {
+        contenedor.removeChild(contenedor.lastChild);
+        ultimoMensaje(resultado);
+    });
 }
 
 function onGeoError(event) {
@@ -135,4 +142,62 @@ function activarToast(tipoAlerta) {
         const toastBootstrap2 = bootstrap.Toast.getOrCreateInstance(toastLiveExample2);
         toastBootstrap2.show();
     }   
+    if(tipoAlerta === 3) {
+        const toastLiveExample3 = document.getElementById('liveToast3');
+        const toastBootstrap3 = bootstrap.Toast.getOrCreateInstance(toastLiveExample3);
+        toastBootstrap3.show();
+    }
+}
+
+function mostrarSpinner() {
+    const spinner = document.createElement('DIV');
+    spinner.classList.add('sk-circle');
+    spinner.innerHTML = `        
+        <div class="sk-circle1 sk-child"></div>
+        <div class="sk-circle2 sk-child"></div>
+        <div class="sk-circle3 sk-child"></div>
+        <div class="sk-circle4 sk-child"></div>
+        <div class="sk-circle5 sk-child"></div>
+        <div class="sk-circle6 sk-child"></div>
+        <div class="sk-circle7 sk-child"></div>
+        <div class="sk-circle8 sk-child"></div>
+        <div class="sk-circle9 sk-child"></div>
+        <div class="sk-circle10 sk-child"></div>
+        <div class="sk-circle11 sk-child"></div>
+        <div class="sk-circle12 sk-child"></div>
+    `;
+    formulario.appendChild(spinner);
+}
+function mostrarSpinner2() {
+    const spinner = document.createElement('DIV');
+    spinner.classList.add('col-12','sk-circle');
+    spinner.innerHTML = `        
+        <div class="sk-circle1 sk-child"></div>
+        <div class="sk-circle2 sk-child"></div>
+        <div class="sk-circle3 sk-child"></div>
+        <div class="sk-circle4 sk-child"></div>
+        <div class="sk-circle5 sk-child"></div>
+        <div class="sk-circle6 sk-child"></div>
+        <div class="sk-circle7 sk-child"></div>
+        <div class="sk-circle8 sk-child"></div>
+        <div class="sk-circle9 sk-child"></div>
+        <div class="sk-circle10 sk-child"></div>
+        <div class="sk-circle11 sk-child"></div>
+        <div class="sk-circle12 sk-child"></div>
+    `;
+    formulario2.appendChild(spinner);
+}
+
+function ultimoMensaje(resultado) {
+    const {hora, fecha, direccion} = resultado;
+    const mensajeFin = document.createElement('DIV');
+    mensajeFin.classList.add('col-12')
+    mensajeFin.innerHTML = `
+        <h2>Se reporto su ${arrayControl.reporte}</h2>
+        <p>Usuario: ${arrayControl.usuario}</p>
+        <p>Fecha: ${fecha}</p>
+        <p>Hora: ${hora}</p>
+        <p>Direccion: ${direccion}</p>
+    `;
+    contenedor.appendChild(mensajeFin);
 }
